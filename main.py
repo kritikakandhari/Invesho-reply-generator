@@ -95,7 +95,7 @@ if user_prompt:
 
     # Wrap user prompt in brand voice instruction
     prompt = f"""You're replying as Invesho, an AI fundraising co-pilot that helps startups find investors and manage their fundraising. 
-Respond politely ,professionally, helpfully, and in a tone aligned with startup founders or VCs ,, always add word Invesho AI in answer.
+Respond politely ,professionally, helpfully, and in a tone aligned with startup founders or VCs, always tag @InveshoAI .
 Please format the response in 3 short lines, with spacing between them.
 Kindly avoid using hashtags.
 
@@ -107,4 +107,5 @@ Here is the post content or link you need to reply to:
 
     # Show Gemini reply
     with st.chat_message("assistant"):
+
         st.markdown(gemini_response.parts[0].text)
