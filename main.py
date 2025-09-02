@@ -2,12 +2,13 @@ import os
 import streamlit as st
 from dotenv import load_dotenv
 import google.generativeai as gen_ai
+from google.api_core.exceptions import DeadlineExceeded
 
 # Load environment variables
 load_dotenv()
 password = os.getenv("password")
 
-#Invesho Password
+# Invesho Password
 def check_password():
     def password_entered():
         if st.session_state["password"] == password:  
@@ -27,7 +28,6 @@ def check_password():
     else:
         return True
 
-
 if not check_password():
     st.stop()
 
@@ -40,7 +40,6 @@ st.set_page_config(
 
 from PIL import Image
 import base64
-
 
 logo_path = "invesho_logo.png"
 with open(logo_path, "rb") as f:
@@ -58,18 +57,14 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-
-
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # Google Gemini-Pro AI model
 gen_ai.configure(api_key=GOOGLE_API_KEY)
 model = gen_ai.GenerativeModel('models/gemini-2.0-flash')
 
-
 def translate_role_for_streamlit(user_role):
     return "assistant" if user_role == "model" else user_role
-
 
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[
@@ -103,9 +98,16 @@ Here is the post content or link you need to reply to:
 \"\"\"{user_prompt}\"\"\"
 """
 
-    gemini_response = st.session_state.chat_session.send_message(prompt)
+    try:
+        gemini_response = st.session_state.chat_session.send_message(prompt)
 
-    # Show Gemini reply
-    with st.chat_message("assistant"):
+        # Show Gemini reply
+        with st.chat_message("assistant"):
+            st.markdown(gemini_response.parts[0].text)
 
-        st.markdown(gemini_response.parts[0].text)
+    except DeadlineExceeded:
+        st.error("⚠️ The request to Gemini timed out. Please try again later or simplify your prompt.")
+    except Exception as e:
+        st.error("⚠️ An unexpected error occurred while contacting Gemini.")
+        with st.expander("See details"):
+            st.exception(e)
